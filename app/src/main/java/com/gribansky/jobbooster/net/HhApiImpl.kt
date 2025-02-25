@@ -22,12 +22,6 @@ class HhApiImpl(private val prefManager: IPrefManager) : IhhApi {
 
     private val baseHhUrl = "https://api.hh.ru"
 
-    private val code = "O82N1HFF021CSGEOS92UM2IOM7KC19CD0A2USSSRLKHO79UQBASHOMEVPL2RPPTI"
-    private val accessToken = "USERN0V37KARPRCPPBP55HIISSLP7HE4HRI5DB24DUP6JU2KBQJJ2570AAF7NK05"
-    private val refreshToken = "USERHEONKM1DNK461AQ03MILIC0RBEPPD87D8CICM6K6VFAR526G5N3E9CVF2I0A"
-    private val resumeId = "6c88eac4ff05db84f90039ed1f3678704d4a6e"
-
-
     private val httpClient by lazy { OkHttpClient.Builder().retryOnConnectionFailure(true).build() }
 
     private val timeFormat = SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss", Locale.getDefault())
@@ -118,21 +112,6 @@ class HhApiImpl(private val prefManager: IPrefManager) : IhhApi {
 
     }
 
-    private fun getAccessToken() {
-        val url =
-            "$baseHhUrl/token?grant_type=authorization_code&client_id=${prefManager.clientId}&client_secret=${prefManager.clientSecret}&code=${prefManager.clientSecret}"
-
-        val f =
-            "https://api.hh.ru/oauth/authorize?response_type=code&client_id=I4ORK7CEI8JVKQB7HPA6DVGCOS8HALCVOO1EBBC41CIL0AHLQIT5HSC2O3E2SBJI"
-
-        val fff =
-            "https://api.hh.ru/token?grant_type=authorization_code&client_id=I4ORK7CEI8JVKQB7HPA6DVGCOS8HALCVOO1EBBC41CIL0AHLQIT5HSC2O3E2SBJI&client_secret=T20GPRAP948TJ0DCFP9TO3DPBGSNGTB76O6ESU5235550B936BBRVPICRTC23K2B&code=O82N1HFF021CSGEOS92UM2IOM7KC19CD0A2USSSRLKHO79UQBASHOMEVPL2RPPTI"
-
-
-        val test =
-            "https://api.hh.ru/token?grant_type=client_credentials&client_id=I4ORK7CEI8JVKQB7HPA6DVGCOS8HALCVOO1EBBC41CIL0AHLQIT5HSC2O3E2SBJI&client_secret=T20GPRAP948TJ0DCFP9TO3DPBGSNGTB76O6ESU5235550B936BBRVPICRTC23K2B&code=29CtxMcaA8pRFDYyC8e8Gkm4"
-
-    }
 
     private fun handleException(ex: Exception): Answer {
         return Answer.Error(-1, ex.message?:ex.toString())
