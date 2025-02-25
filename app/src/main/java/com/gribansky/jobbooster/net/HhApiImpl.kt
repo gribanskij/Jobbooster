@@ -28,43 +28,41 @@ class HhApiImpl(private val prefManager: IPrefManager) : IhhApi {
 
 
     override suspend fun boostResume() = withContext(Dispatchers.IO) {
-            try {
+        try {
 
-                val res = when (val result = publishResume()){
-                    is Answer.Success -> { result }
-                    is Answer.Error -> {
-                        if (result.statusCode == 403){
-                            updateToken()
-                            publishResume()
-                        } else result
-                    }
+            val res = when (val result = publishResume()) {
+                is Answer.Success -> {
+                    result
                 }
 
-                savePublishResult(res)
-
-            } catch (ex: Exception) {
-                savePublishResult (handleException(ex))
+                is Answer.Error -> {
+                    if (result.statusCode == 403) {
+                        updateToken()
+                        publishResume()
+                    } else result
+                }
             }
-        }
 
+            savePublishResult(res)
+
+        } catch (ex: Exception) {
+            savePublishResult(handleException(ex))
+        }
+    }
 
 
     private suspend fun updateToken(): Answer {
 
-        return try {
-            val request = getUpdateTokenRequest()
-            val ans = httpClient.newCall(request).await()
+        val request = getUpdateTokenRequest()
+        val ans = httpClient.newCall(request).await()
 
-            if (ans.isSuccessful) {
-                saveTokens(ans.body.toString())
-                Answer.Success("")
-            } else {
-                Answer.Error(statusCode = ans.code, ans.body.toString())
-            }
-
-        } catch (ex: Exception) {
-            handleException(ex)
+        return if (ans.isSuccessful) {
+            saveTokens(ans.body.toString())
+            Answer.Success("")
+        } else {
+            Answer.Error(statusCode = ans.code, ans.body.toString())
         }
+
     }
 
     private fun getUpdateTokenRequest(): Request {
@@ -73,30 +71,22 @@ class HhApiImpl(private val prefManager: IPrefManager) : IhhApi {
             "$baseHhUrl/token?grant_type=refresh_token&refresh_token=${prefManager.refreshToken}"
         return Request.Builder()
             .url(url)
-            .addHeader("HH-User-Agent", "${prefManager.appName}/1.0 (${prefManager.email})")
+            .addHeader("User-Agent", "${prefManager.appName}/1.0 (${prefManager.email})")
             .post("".toRequestBody())
             .build()
 
     }
 
 
-    private suspend fun publishResume():Answer{
+    private suspend fun publishResume(): Answer {
 
-        return try {
+        val request = getResumeRequest()
+        val ans = httpClient.newCall(request).await()
 
-            val request = getResumeRequest()
-            val ans = httpClient.newCall(request).await()
-
-            if (ans.code == 204) Answer.Success("")
-            else Answer.Error(statusCode = ans.code, ans.body!!.string())
-
-        } catch (ex:Exception){
-            handleException(ex)
-        }
+        return if (ans.code == 204) Answer.Success("")
+        else Answer.Error(statusCode = ans.code, ans.body!!.string())
 
     }
-
-
 
 
     private fun getResumeRequest(): Request {
@@ -114,7 +104,7 @@ class HhApiImpl(private val prefManager: IPrefManager) : IhhApi {
 
 
     private fun handleException(ex: Exception): Answer {
-        return Answer.Error(-1, ex.message?:ex.toString())
+        return Answer.Error(-1, ex.message ?: ex.toString())
     }
 
 
@@ -125,12 +115,13 @@ class HhApiImpl(private val prefManager: IPrefManager) : IhhApi {
         prefManager.refreshToken = obj.getString("refresh_token")
     }
 
-    private fun savePublishResult(result: Answer){
+    private fun savePublishResult(result: Answer) {
 
-        when (result){
+        when (result) {
 
             is Answer.Error -> {
-                prefManager.errorDesc = "${timeFormat.format(Date())}: ${result.statusCode}:${result.message}"
+                prefManager.errorDesc =
+                    "${timeFormat.format(Date())}: ${result.statusCode}:${result.message}"
             }
 
             is Answer.Success -> {
