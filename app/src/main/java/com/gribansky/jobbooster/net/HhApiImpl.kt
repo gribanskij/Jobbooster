@@ -57,10 +57,10 @@ class HhApiImpl(private val prefManager: IPrefManager) : IhhApi {
         val ans = httpClient.newCall(request).await()
 
         return if (ans.isSuccessful) {
-            saveTokens(ans.body.toString())
+            saveTokens(ans.body?.string()?:"")
             Answer.Success("")
         } else {
-            Answer.Error(statusCode = ans.code, ans.body.toString())
+            Answer.Error(statusCode = ans.code, ans.body?.string()?:"????")
         }
 
     }
